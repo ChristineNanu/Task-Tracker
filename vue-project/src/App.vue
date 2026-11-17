@@ -3,9 +3,10 @@ import { computed, ref, watch } from 'vue'
 import TaskItem from './components/TaskItem.vue'
 
 // ref() makes these values reactive, so Vue updates the page when they change.
-type Task = { id: number; title: string; done: boolean }
+type Task = { id: number; title: string; done: boolean; dueDate?: string }
 
 const newTask = ref('')
+const newDueDate = ref('')
 const starterTasks: Task[] = [
   { id: 1, title: 'Learn what a Vue component is', done: false },
   { id: 2, title: 'Add my first task', done: true },
@@ -48,8 +49,14 @@ function addTask() {
   const title = newTask.value.trim()
   if (!title) return
 
-  tasks.value.push({ id: Date.now(), title, done: false })
+  tasks.value.push({
+    id: Date.now(),
+    title,
+    done: false,
+    dueDate: newDueDate.value || undefined,
+  })
   newTask.value = ''
+  newDueDate.value = ''
 }
 
 function deleteTask(id: number) {
@@ -61,9 +68,12 @@ function toggleTask(id: number) {
   if (task) task.done = !task.done
 }
 
-function editTask(id: number, title: string) {
+function editTask(id: number, title: string, dueDate: string) {
   const task = tasks.value.find((task) => task.id === id)
-  if (task) task.title = title
+  if (task) {
+    task.title = title
+    task.dueDate = dueDate || undefined
+  }
 }
 </script>
 
@@ -75,14 +85,20 @@ function editTask(id: number, title: string) {
       <p class="intro">Keep track of the things you want to get done.</p>
 
       <form class="add-form" @submit.prevent="addTask">
-        <label class="visually-hidden" for="new-task">New task</label>
-        <input
-          id="new-task"
-          v-model="newTask"
-          type="text"
-          placeholder="e.g. Read the Vue guide"
-          autocomplete="off"
-        />
+        <div class="add-fields">
+          <label class="visually-hidden" for="new-task">New task</label>
+          <input
+            id="new-task"
+            v-model="newTask"
+            type="text"
+            placeholder="e.g. Read the Vue guide"
+            autocomplete="off"
+          />
+          <label class="date-field">
+            Due date
+            <input v-model="newDueDate" type="date" />
+          </label>
+        </div>
         <button class="add-button" type="submit">Add task</button>
       </form>
 

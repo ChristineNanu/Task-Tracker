@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-type Task = { id: number; title: string; done: boolean }
+type Task = { id: number; title: string; done: boolean; dueDate?: string }
 
 // The parent passes this task into the component as a prop.
 const props = defineProps<{ task: Task }>()
@@ -10,14 +10,16 @@ const props = defineProps<{ task: Task }>()
 const emit = defineEmits<{
   toggle: [id: number]
   delete: [id: number]
-  edit: [id: number, title: string]
+  edit: [id: number, title: string, dueDate: string]
 }>()
 
 const isEditing = ref(false)
 const editedTitle = ref('')
+const editedDueDate = ref('')
 
 function startEditing() {
   editedTitle.value = props.task.title
+  editedDueDate.value = props.task.dueDate ?? ''
   isEditing.value = true
 }
 
@@ -25,12 +27,20 @@ function saveEdit() {
   const title = editedTitle.value.trim()
   if (!title) return
 
-  emit('edit', props.task.id, title)
+  emit('edit', props.task.id, title, editedDueDate.value)
   isEditing.value = false
 }
 
 function cancelEdit() {
   isEditing.value = false
+}
+
+function formatDueDate(date: string) {
+  return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 </script>
 
@@ -39,6 +49,8 @@ function cancelEdit() {
     <form v-if="isEditing" class="edit-form" @submit.prevent="saveEdit">
       <label class="visually-hidden" :for="`edit-task-${task.id}`">Edit task</label>
       <input :id="`edit-task-${task.id}`" v-model="editedTitle" />
+      <label class="visually-hidden" :for="`edit-date-${task.id}`">Due date</label>
+      <input :id="`edit-date-${task.id}`" v-model="editedDueDate" type="date" />
       <button class="save-button" type="submit">Save</button>
       <button class="cancel-button" type="button" @click="cancelEdit">Cancel</button>
     </form>
@@ -50,7 +62,10 @@ function cancelEdit() {
           :checked="task.done"
           @change="emit('toggle', task.id)"
         />
-        <span>{{ task.title }}</span>
+        <span class="task-details">
+          <span>{{ task.title }}</span>
+          <small v-if="task.dueDate">Due {{ formatDueDate(task.dueDate) }}</small>
+        </span>
       </label>
       <div class="row-actions">
         <button class="edit-button" type="button" @click="startEditing">Edit</button>

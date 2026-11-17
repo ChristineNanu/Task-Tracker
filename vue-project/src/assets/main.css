@@ -83,6 +83,14 @@ h1 {
   margin-top: 28px;
 }
 
+.add-fields {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+}
+
 .add-form input {
   min-width: 0;
   flex: 1;
@@ -95,6 +103,19 @@ h1 {
 .add-form input:focus {
   border-color: #398658;
   box-shadow: 0 0 0 3px rgba(57, 134, 88, 0.13);
+}
+
+.date-field {
+  display: grid;
+  flex-shrink: 0;
+  gap: 2px;
+  color: #69776f;
+  font-size: 0.72rem;
+}
+
+.date-field input {
+  width: 145px;
+  padding: 8px 10px;
 }
 
 .add-button {
@@ -171,6 +192,17 @@ h1 {
   align-items: center;
   gap: 11px;
   overflow-wrap: anywhere;
+}
+
+.task-details {
+  display: grid;
+  gap: 2px;
+}
+
+.task-details small {
+  color: #748078;
+  font-size: 0.76rem;
+  text-decoration: none;
 }
 
 .task-label input {
@@ -279,6 +311,15 @@ h1 {
 
   .add-form {
     flex-direction: column;
+  }
+
+  .add-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-field input {
+    width: 100%;
   }
 
   .add-button {
