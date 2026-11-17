@@ -34,9 +34,45 @@ button {
   min-height: 100vh;
 }
 
+.site-header {
+  display: flex;
+  min-height: 66px;
+  max-width: 1000px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.site-name {
+  color: #21302b;
+  font-size: 1.05rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.site-header nav {
+  display: flex;
+  gap: 8px;
+}
+
+.site-header nav a {
+  padding: 7px 11px;
+  border-radius: 8px;
+  color: #69776f;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.site-header nav a:hover,
+.site-header nav a.active-link {
+  background: #e6efe8;
+  color: #287747;
+}
+
 .page {
   display: grid;
-  min-height: 100vh;
+  min-height: calc(100vh - 66px);
   place-items: center;
   padding: 32px 18px;
 }
@@ -48,6 +84,22 @@ button {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 22px 70px rgba(35, 65, 46, 0.1);
+}
+
+.about-card h1 {
+  max-width: 440px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 24px;
+  color: #287747;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
 }
 
 .eyebrow {
