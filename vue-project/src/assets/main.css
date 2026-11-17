@@ -127,6 +127,31 @@ h1 {
   font-size: 0.88rem;
 }
 
+.filters {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.filters button {
+  padding: 6px 11px;
+  border: 1px solid #e2eae3;
+  border-radius: 999px;
+  background: white;
+  color: #69776f;
+  font-size: 0.84rem;
+}
+
+.filters button:hover {
+  border-color: #a8c7b1;
+}
+
+.filters button.selected {
+  border-color: #287747;
+  background: #287747;
+  color: white;
+}
+
 .task-list {
   padding: 0;
   list-style: none;

@@ -7,8 +7,16 @@ const tasks = ref([
   { id: 1, title: 'Learn what a Vue component is', done: false },
   { id: 2, title: 'Add my first task', done: true },
 ])
+const currentFilter = ref<'all' | 'active' | 'completed'>('all')
+const filters = ['all', 'active', 'completed'] as const
+const filterLabels = { all: 'All', active: 'Active', completed: 'Completed' }
 
 const remainingTasks = computed(() => tasks.value.filter((task) => !task.done).length)
+const visibleTasks = computed(() => {
+  if (currentFilter.value === 'active') return tasks.value.filter((task) => !task.done)
+  if (currentFilter.value === 'completed') return tasks.value.filter((task) => task.done)
+  return tasks.value
+})
 
 function addTask() {
   const title = newTask.value.trim()
@@ -47,8 +55,21 @@ function deleteTask(id: number) {
         <span>{{ remainingTasks }} left</span>
       </div>
 
-      <ul v-if="tasks.length" class="task-list">
-        <li v-for="task in tasks" :key="task.id" class="task-row">
+      <div class="filters" aria-label="Filter tasks">
+        <button
+          v-for="filter in filters"
+          :key="filter"
+          type="button"
+          :class="{ selected: currentFilter === filter }"
+          :aria-pressed="currentFilter === filter"
+          @click="currentFilter = filter"
+        >
+          {{ filterLabels[filter] }}
+        </button>
+      </div>
+
+      <ul v-if="visibleTasks.length" class="task-list">
+        <li v-for="task in visibleTasks" :key="task.id" class="task-row">
           <label class="task-label" :class="{ completed: task.done }">
             <input v-model="task.done" type="checkbox" />
             <span>{{ task.title }}</span>
@@ -63,7 +84,9 @@ function deleteTask(id: number) {
           </button>
         </li>
       </ul>
-      <p v-else class="empty-message">No tasks yet. Add one above to get started.</p>
+      <p v-else class="empty-message">
+        {{ tasks.length ? 'No tasks match this filter.' : 'No tasks yet. Add one above to get started.' }}
+      </p>
 
       <p class="hint">Tip: check a task when it’s done.</p>
     </section>
