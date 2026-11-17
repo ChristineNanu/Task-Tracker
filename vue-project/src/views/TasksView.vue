@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import TaskForm from '../components/TaskForm.vue'
 import TaskItem from '../components/TaskItem.vue'
 
 // ref() makes these values reactive, so Vue updates the page when they change.
 type Task = { id: number; title: string; done: boolean; dueDate?: string }
 
-const newTask = ref('')
-const newDueDate = ref('')
-const titleError = ref('')
 const isLoadingSamples = ref(false)
 const sampleLoadError = ref('')
 const starterTasks: Task[] = [
@@ -48,33 +46,13 @@ watch(
   { deep: true },
 )
 
-function addTask() {
-  const title = newTask.value.trim()
-  if (!validateTitle()) return
-
+function addTask(formData: { title: string; dueDate: string }) {
   tasks.value.push({
     id: Date.now(),
-    title,
+    title: formData.title,
     done: false,
-    dueDate: newDueDate.value || undefined,
+    dueDate: formData.dueDate || undefined,
   })
-  newTask.value = ''
-  newDueDate.value = ''
-  titleError.value = ''
-}
-
-function validateTitle() {
-  const title = newTask.value.trim()
-
-  if (!title) {
-    titleError.value = 'Enter a task title.'
-  } else if (title.length > 80) {
-    titleError.value = 'Keep the title to 80 characters or fewer.'
-  } else {
-    titleError.value = ''
-  }
-
-  return titleError.value === ''
 }
 
 function deleteTask(id: number) {
@@ -130,32 +108,7 @@ async function loadSampleTasks() {
       <h1 id="page-title">My tasks</h1>
       <p class="intro">Keep track of the things you want to get done.</p>
 
-      <form class="add-form" @submit.prevent="addTask">
-        <div class="add-fields">
-          <div class="title-field">
-            <label class="visually-hidden" for="new-task">New task</label>
-            <input
-              id="new-task"
-              v-model="newTask"
-              type="text"
-              placeholder="e.g. Read the Vue guide"
-              autocomplete="off"
-              :aria-invalid="Boolean(titleError)"
-              :aria-describedby="titleError ? 'title-error' : 'title-hint'"
-              @input="validateTitle"
-            />
-            <small v-if="titleError" id="title-error" class="field-error" role="alert">
-              {{ titleError }}
-            </small>
-            <small v-else id="title-hint" class="field-hint">Up to 80 characters</small>
-          </div>
-          <label class="date-field">
-            Due date
-            <input v-model="newDueDate" type="date" />
-          </label>
-        </div>
-        <button class="add-button" type="submit">Add task</button>
-      </form>
+      <TaskForm id-prefix="new-task" submit-label="Add task" @save="addTask" />
 
       <div class="api-demo">
         <button

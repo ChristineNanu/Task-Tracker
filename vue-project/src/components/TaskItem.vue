@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import TaskForm from './TaskForm.vue'
 
 type Task = { id: number; title: string; done: boolean; dueDate?: string }
 
@@ -14,20 +15,13 @@ const emit = defineEmits<{
 }>()
 
 const isEditing = ref(false)
-const editedTitle = ref('')
-const editedDueDate = ref('')
 
 function startEditing() {
-  editedTitle.value = props.task.title
-  editedDueDate.value = props.task.dueDate ?? ''
   isEditing.value = true
 }
 
-function saveEdit() {
-  const title = editedTitle.value.trim()
-  if (!title) return
-
-  emit('edit', props.task.id, title, editedDueDate.value)
+function saveEdit(formData: { title: string; dueDate: string }) {
+  emit('edit', props.task.id, formData.title, formData.dueDate)
   isEditing.value = false
 }
 
@@ -46,14 +40,14 @@ function formatDueDate(date: string) {
 
 <template>
   <li class="task-row">
-    <form v-if="isEditing" class="edit-form" @submit.prevent="saveEdit">
-      <label class="visually-hidden" :for="`edit-task-${task.id}`">Edit task</label>
-      <input :id="`edit-task-${task.id}`" v-model="editedTitle" />
-      <label class="visually-hidden" :for="`edit-date-${task.id}`">Due date</label>
-      <input :id="`edit-date-${task.id}`" v-model="editedDueDate" type="date" />
-      <button class="save-button" type="submit">Save</button>
-      <button class="cancel-button" type="button" @click="cancelEdit">Cancel</button>
-    </form>
+    <TaskForm
+      v-if="isEditing"
+      :task="task"
+      :id-prefix="`edit-task-${task.id}`"
+      submit-label="Save"
+      @save="saveEdit"
+      @cancel="cancelEdit"
+    />
 
     <template v-else>
       <label class="task-label" :class="{ completed: task.done }">
