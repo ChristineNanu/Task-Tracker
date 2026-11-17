@@ -7,6 +7,8 @@ type Task = { id: number; title: string; done: boolean; dueDate?: string }
 
 const newTask = ref('')
 const newDueDate = ref('')
+const isLoadingSamples = ref(false)
+const sampleLoadError = ref('')
 const starterTasks: Task[] = [
   { id: 1, title: 'Learn what a Vue component is', done: false },
   { id: 2, title: 'Add my first task', done: true },
@@ -75,6 +77,34 @@ function editTask(id: number, title: string, dueDate: string) {
     task.dueDate = dueDate || undefined
   }
 }
+
+async function loadSampleTasks() {
+  isLoadingSamples.value = true
+  sampleLoadError.value = ''
+
+  try {
+    const response = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=5')
+    if (!response.ok) throw new Error('Request failed')
+
+    const sampleTasks = (await response.json()) as {
+      id: number
+      title: string
+      completed: boolean
+    }[]
+
+    tasks.value.push(
+      ...sampleTasks.map((task, index) => ({
+        id: Date.now() + index,
+        title: task.title,
+        done: task.completed,
+      })),
+    )
+  } catch {
+    sampleLoadError.value = 'Could not load sample tasks. Check your internet connection and try again.'
+  } finally {
+    isLoadingSamples.value = false
+  }
+}
 </script>
 
 <template>
@@ -101,6 +131,18 @@ function editTask(id: number, title: string, dueDate: string) {
         </div>
         <button class="add-button" type="submit">Add task</button>
       </form>
+
+      <div class="api-demo">
+        <button
+          class="sample-button"
+          type="button"
+          :disabled="isLoadingSamples"
+          @click="loadSampleTasks"
+        >
+          {{ isLoadingSamples ? 'Loading…' : 'Load sample tasks from API' }}
+        </button>
+        <p v-if="sampleLoadError" class="api-error" role="alert">{{ sampleLoadError }}</p>
+      </div>
 
       <div class="list-heading">
         <h2>Task list</h2>
