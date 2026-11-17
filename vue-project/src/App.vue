@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import TaskItem from './components/TaskItem.vue'
 
 // ref() makes these values reactive, so Vue updates the page when they change.
 type Task = { id: number; title: string; done: boolean }
@@ -54,6 +55,16 @@ function addTask() {
 function deleteTask(id: number) {
   tasks.value = tasks.value.filter((task) => task.id !== id)
 }
+
+function toggleTask(id: number) {
+  const task = tasks.value.find((task) => task.id === id)
+  if (task) task.done = !task.done
+}
+
+function editTask(id: number, title: string) {
+  const task = tasks.value.find((task) => task.id === id)
+  if (task) task.title = title
+}
 </script>
 
 <template>
@@ -94,20 +105,14 @@ function deleteTask(id: number) {
       </div>
 
       <ul v-if="visibleTasks.length" class="task-list">
-        <li v-for="task in visibleTasks" :key="task.id" class="task-row">
-          <label class="task-label" :class="{ completed: task.done }">
-            <input v-model="task.done" type="checkbox" />
-            <span>{{ task.title }}</span>
-          </label>
-          <button
-            class="delete-button"
-            type="button"
-            :aria-label="`Delete ${task.title}`"
-            @click="deleteTask(task.id)"
-          >
-            Delete
-          </button>
-        </li>
+        <TaskItem
+          v-for="task in visibleTasks"
+          :key="task.id"
+          :task="task"
+          @toggle="toggleTask"
+          @delete="deleteTask"
+          @edit="editTask"
+        />
       </ul>
       <p v-else class="empty-message">
         {{ tasks.length ? 'No tasks match this filter.' : 'No tasks yet. Add one above to get started.' }}

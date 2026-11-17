@@ -184,6 +184,58 @@ h1 {
   text-decoration: line-through;
 }
 
+.row-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-button,
+.save-button,
+.cancel-button {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #52685a;
+  font-size: 0.82rem;
+}
+
+.edit-button:hover,
+.cancel-button:hover {
+  background: #eef4ef;
+}
+
+.edit-form {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-form input {
+  min-width: 0;
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #d8e1da;
+  border-radius: 8px;
+}
+
+.edit-form input:focus {
+  border-color: #398658;
+  outline: 2px solid rgba(57, 134, 88, 0.13);
+}
+
+.save-button {
+  background: #287747;
+  color: white;
+}
+
+.save-button:hover {
+  background: #1f633a;
+}
+
 .delete-button {
   padding: 6px 8px;
   border: 0;
