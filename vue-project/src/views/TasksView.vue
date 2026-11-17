@@ -7,6 +7,7 @@ type Task = { id: number; title: string; done: boolean; dueDate?: string }
 
 const newTask = ref('')
 const newDueDate = ref('')
+const titleError = ref('')
 const isLoadingSamples = ref(false)
 const sampleLoadError = ref('')
 const starterTasks: Task[] = [
@@ -49,7 +50,7 @@ watch(
 
 function addTask() {
   const title = newTask.value.trim()
-  if (!title) return
+  if (!validateTitle()) return
 
   tasks.value.push({
     id: Date.now(),
@@ -59,6 +60,21 @@ function addTask() {
   })
   newTask.value = ''
   newDueDate.value = ''
+  titleError.value = ''
+}
+
+function validateTitle() {
+  const title = newTask.value.trim()
+
+  if (!title) {
+    titleError.value = 'Enter a task title.'
+  } else if (title.length > 80) {
+    titleError.value = 'Keep the title to 80 characters or fewer.'
+  } else {
+    titleError.value = ''
+  }
+
+  return titleError.value === ''
 }
 
 function deleteTask(id: number) {
@@ -116,14 +132,23 @@ async function loadSampleTasks() {
 
       <form class="add-form" @submit.prevent="addTask">
         <div class="add-fields">
-          <label class="visually-hidden" for="new-task">New task</label>
-          <input
-            id="new-task"
-            v-model="newTask"
-            type="text"
-            placeholder="e.g. Read the Vue guide"
-            autocomplete="off"
-          />
+          <div class="title-field">
+            <label class="visually-hidden" for="new-task">New task</label>
+            <input
+              id="new-task"
+              v-model="newTask"
+              type="text"
+              placeholder="e.g. Read the Vue guide"
+              autocomplete="off"
+              :aria-invalid="Boolean(titleError)"
+              :aria-describedby="titleError ? 'title-error' : 'title-hint'"
+              @input="validateTitle"
+            />
+            <small v-if="titleError" id="title-error" class="field-error" role="alert">
+              {{ titleError }}
+            </small>
+            <small v-else id="title-hint" class="field-hint">Up to 80 characters</small>
+          </div>
           <label class="date-field">
             Due date
             <input v-model="newDueDate" type="date" />
