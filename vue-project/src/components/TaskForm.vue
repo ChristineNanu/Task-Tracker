@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-
-type Task = { title: string; dueDate?: string }
+import type { Task, TaskCategory, TaskFormData, TaskPriority } from '../types/task'
 
 const props = defineProps<{
-  task?: Task
+  task?: Pick<Task, 'title' | 'dueDate' | 'category' | 'priority'>
   idPrefix: string
   submitLabel: string
 }>()
 
 const emit = defineEmits<{
-  save: [task: { title: string; dueDate: string }]
+  save: [task: TaskFormData]
   cancel: []
 }>()
 
 const title = ref(props.task?.title ?? '')
 const dueDate = ref(props.task?.dueDate ?? '')
+const category = ref<TaskCategory | ''>(props.task?.category ?? '')
+const priority = ref<TaskPriority>(props.task?.priority ?? 'medium')
 const titleError = ref('')
+const categoryError = ref('')
 
 function validateTitle() {
   const trimmedTitle = title.value.trim()
@@ -32,15 +34,29 @@ function validateTitle() {
   return titleError.value === ''
 }
 
-function submitForm() {
-  if (!validateTitle()) return
+function validateCategory() {
+  categoryError.value = category.value ? '' : 'Choose a category.'
+  return categoryError.value === ''
+}
 
-  emit('save', { title: title.value.trim(), dueDate: dueDate.value })
+function submitForm() {
+  const titleIsValid = validateTitle()
+  const categoryIsValid = validateCategory()
+  if (!titleIsValid || !categoryIsValid) return
+
+  emit('save', {
+    title: title.value.trim(),
+    dueDate: dueDate.value,
+    category: category.value as TaskCategory,
+    priority: priority.value,
+  })
 
   // A new task form clears after saving. An edit form keeps its values until closed.
   if (!props.task) {
     title.value = ''
     dueDate.value = ''
+    category.value = ''
+    priority.value = 'medium'
   }
 }
 </script>
@@ -65,11 +81,41 @@ function submitForm() {
         </small>
         <small v-else :id="`${idPrefix}-hint`" class="field-hint">Up to 80 characters</small>
       </div>
+
       <label class="date-field">
         Due date
         <input v-model="dueDate" type="date" />
       </label>
+
+      <label class="choice-field">
+        Category
+        <select
+          v-model="category"
+          :id="`${idPrefix}-category`"
+          :aria-invalid="Boolean(categoryError)"
+          :aria-describedby="categoryError ? `${idPrefix}-category-error` : undefined"
+          @change="validateCategory"
+        >
+          <option value="">Choose category</option>
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+          <option value="study">Study</option>
+        </select>
+        <small v-if="categoryError" :id="`${idPrefix}-category-error`" class="field-error" role="alert">
+          {{ categoryError }}
+        </small>
+      </label>
+
+      <label class="choice-field">
+        Priority
+        <select v-model="priority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
     </div>
+
     <button :class="task ? 'save-button' : 'add-button'" type="submit">
       {{ submitLabel }}
     </button>

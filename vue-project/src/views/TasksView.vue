@@ -2,15 +2,16 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import TaskForm from '../components/TaskForm.vue'
 import TaskItem from '../components/TaskItem.vue'
+import { getSampleTasks } from '../services/taskService'
+import type { Task, TaskFormData } from '../types/task'
 
 // ref() makes these values reactive, so Vue updates the page when they change.
-type Task = { id: number; title: string; done: boolean; dueDate?: string }
-
 const isLoadingSamples = ref(false)
 const sampleLoadError = ref('')
+const saveMessage = ref('')
 const starterTasks: Task[] = [
-  { id: 1, title: 'Learn what a Vue component is', done: false },
-  { id: 2, title: 'Add my first task', done: true },
+  { id: 1, title: 'Learn what a Vue component is', done: false, category: 'study', priority: 'medium' },
+  { id: 2, title: 'Add my first task', done: true, category: 'personal', priority: 'low' },
 ]
 
 function loadTasks(): Task[] {
@@ -54,13 +55,14 @@ onMounted(() => {
   }
 })
 
-function addTask(formData: { title: string; dueDate: string }) {
+function addTask(formData: TaskFormData) {
   tasks.value.push({
     id: Date.now(),
-    title: formData.title,
     done: false,
+    ...formData,
     dueDate: formData.dueDate || undefined,
   })
+  saveMessage.value = 'Task added.'
 }
 
 function deleteTask(id: number) {
@@ -72,11 +74,14 @@ function toggleTask(id: number) {
   if (task) task.done = !task.done
 }
 
-function editTask(id: number, title: string, dueDate: string) {
+function editTask(id: number, formData: TaskFormData) {
   const task = tasks.value.find((task) => task.id === id)
   if (task) {
-    task.title = title
-    task.dueDate = dueDate || undefined
+    task.title = formData.title
+    task.dueDate = formData.dueDate || undefined
+    task.category = formData.category
+    task.priority = formData.priority
+    saveMessage.value = 'Task updated.'
   }
 }
 
@@ -85,20 +90,7 @@ async function loadSampleTasks() {
   sampleLoadError.value = ''
 
   try {
-    const response = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=5')
-    if (!response.ok) throw new Error('Request failed')
-
-    const sampleTasks = (await response.json()) as {
-      id: number
-      title: string
-      completed: boolean
-    }[]
-
-    tasks.value = sampleTasks.map((task, index) => ({
-      id: Date.now() + index,
-      title: task.title,
-      done: task.completed,
-    }))
+    tasks.value = await getSampleTasks()
   } catch {
     sampleLoadError.value = 'Could not load sample tasks. Check your internet connection and try again.'
   } finally {
@@ -115,6 +107,7 @@ async function loadSampleTasks() {
       <p class="intro">Keep track of the things you want to get done.</p>
 
       <TaskForm id-prefix="new-task" submit-label="Add task" @save="addTask" />
+      <p v-if="saveMessage" class="save-message" role="status">{{ saveMessage }}</p>
 
       <div class="api-demo" aria-live="polite">
         <p v-if="isLoadingSamples" class="api-status">Loading sample tasks…</p>

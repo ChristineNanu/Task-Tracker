@@ -131,26 +131,30 @@ h1 {
 
 .add-form {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   margin-top: 28px;
 }
 
 .add-fields {
   display: flex;
+  width: 100%;
   min-width: 0;
   flex: 1;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 10px;
 }
 
 .title-field {
   display: grid;
   min-width: 0;
-  flex: 1;
+  flex: 1 1 100%;
   gap: 4px;
 }
 
-.add-form input {
+.add-form input,
+.add-form select {
   min-width: 0;
   flex: 1;
   padding: 12px 14px;
@@ -159,27 +163,56 @@ h1 {
   outline: none;
 }
 
-.add-form input:focus {
+.add-form input:focus,
+.add-form select:focus,
+.edit-form input:focus,
+.edit-form select:focus {
   border-color: #398658;
   box-shadow: 0 0 0 3px rgba(57, 134, 88, 0.13);
 }
 
 .add-form input[aria-invalid='true'],
-.edit-form input[aria-invalid='true'] {
+.add-form select[aria-invalid='true'],
+.edit-form input[aria-invalid='true'],
+.edit-form select[aria-invalid='true'] {
   border-color: #c95d5d;
 }
 
 .date-field {
   display: grid;
-  flex-shrink: 0;
+  flex: 1 1 125px;
+  min-width: 0;
   gap: 2px;
   color: #69776f;
   font-size: 0.72rem;
 }
 
-.date-field input {
-  width: 145px;
+.date-field input,
+.choice-field select {
+  width: 100%;
   padding: 8px 10px;
+}
+
+.choice-field {
+  display: grid;
+  flex: 1 1 125px;
+  min-width: 0;
+  gap: 2px;
+  color: #69776f;
+  font-size: 0.72rem;
+}
+
+.choice-field select {
+  min-height: 38px;
+  border: 1px solid #d8e1da;
+  border-radius: 10px;
+  background: white;
+  color: #21302b;
+}
+
+.add-form .add-button {
+  align-self: flex-start;
+  min-height: 42px;
 }
 
 .field-hint,
@@ -324,6 +357,9 @@ h1 {
 
 .task-label.completed span {
   color: #8a958e;
+}
+
+.task-label.completed .task-details > span {
   text-decoration: line-through;
 }
 
@@ -353,12 +389,13 @@ h1 {
 .edit-form {
   display: flex;
   width: 100%;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
 
-.edit-form .date-field input {
-  width: 145px;
+.edit-form .add-fields {
+  flex-basis: 100%;
 }
 
 .edit-form input {
@@ -367,6 +404,15 @@ h1 {
   padding: 8px 10px;
   border: 1px solid #d8e1da;
   border-radius: 8px;
+}
+
+.edit-form select {
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #d8e1da;
+  border-radius: 8px;
+  background: white;
+  color: #21302b;
 }
 
 .edit-form input:focus {
@@ -381,6 +427,12 @@ h1 {
 
 .save-button:hover {
   background: #1f633a;
+}
+
+.save-message {
+  margin-top: 8px;
+  color: #287747;
+  font-size: 0.84rem;
 }
 
 .delete-button {
@@ -439,10 +491,6 @@ h1 {
 
   .edit-form .add-fields {
     flex-basis: 100%;
-  }
-
-  .date-field input {
-    width: 100%;
   }
 
   .add-button {

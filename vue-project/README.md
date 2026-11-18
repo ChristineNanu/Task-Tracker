@@ -20,4 +20,6 @@ Open the local address printed by Vite. The app starts in `src/main.ts`. The rou
 - `src/router.ts` maps URLs to pages.
 - `src/views/` contains full pages, such as Tasks and About.
 - `src/components/` contains smaller reusable pieces, such as the header, task form, and task row.
+- `src/services/` contains API request code, separate from the page display.
+- `src/types/` contains TypeScript descriptions of shared data, such as a task.
 - `src/assets/main.css` contains the app's styles.

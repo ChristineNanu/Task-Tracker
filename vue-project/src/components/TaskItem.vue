@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import TaskForm from './TaskForm.vue'
-
-type Task = { id: number; title: string; done: boolean; dueDate?: string }
+import type { Task, TaskCategory, TaskFormData, TaskPriority } from '../types/task'
 
 // The parent passes this task into the component as a prop.
 const props = defineProps<{ task: Task }>()
@@ -11,7 +10,7 @@ const props = defineProps<{ task: Task }>()
 const emit = defineEmits<{
   toggle: [id: number]
   delete: [id: number]
-  edit: [id: number, title: string, dueDate: string]
+  edit: [id: number, formData: TaskFormData]
 }>()
 
 const isEditing = ref(false)
@@ -20,8 +19,8 @@ function startEditing() {
   isEditing.value = true
 }
 
-function saveEdit(formData: { title: string; dueDate: string }) {
-  emit('edit', props.task.id, formData.title, formData.dueDate)
+function saveEdit(formData: TaskFormData) {
+  emit('edit', props.task.id, formData)
   isEditing.value = false
 }
 
@@ -35,6 +34,16 @@ function formatDueDate(date: string) {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+function formatCategory(category?: TaskCategory) {
+  if (!category) return 'Uncategorized'
+  return category.charAt(0).toUpperCase() + category.slice(1)
+}
+
+function formatPriority(priority?: TaskPriority) {
+  const value = priority ?? 'medium'
+  return value.charAt(0).toUpperCase() + value.slice(1)
 }
 </script>
 
@@ -58,6 +67,7 @@ function formatDueDate(date: string) {
         />
         <span class="task-details">
           <span>{{ task.title }}</span>
+          <small>{{ formatCategory(task.category) }} · {{ formatPriority(task.priority) }} priority</small>
           <small v-if="task.dueDate">Due {{ formatDueDate(task.dueDate) }}</small>
         </span>
       </label>
