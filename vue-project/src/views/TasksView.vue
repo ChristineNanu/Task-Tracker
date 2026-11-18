@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import TaskForm from '../components/TaskForm.vue'
 import TaskItem from '../components/TaskItem.vue'
 
@@ -46,6 +46,14 @@ watch(
   { deep: true },
 )
 
+// onMounted runs after this page first appears. Only fetch starter data when
+// there are no saved tasks in this browser yet.
+onMounted(() => {
+  if (localStorage.getItem('my-tasks') === null) {
+    void loadSampleTasks()
+  }
+})
+
 function addTask(formData: { title: string; dueDate: string }) {
   tasks.value.push({
     id: Date.now(),
@@ -86,13 +94,11 @@ async function loadSampleTasks() {
       completed: boolean
     }[]
 
-    tasks.value.push(
-      ...sampleTasks.map((task, index) => ({
-        id: Date.now() + index,
-        title: task.title,
-        done: task.completed,
-      })),
-    )
+    tasks.value = sampleTasks.map((task, index) => ({
+      id: Date.now() + index,
+      title: task.title,
+      done: task.completed,
+    }))
   } catch {
     sampleLoadError.value = 'Could not load sample tasks. Check your internet connection and try again.'
   } finally {
@@ -110,16 +116,12 @@ async function loadSampleTasks() {
 
       <TaskForm id-prefix="new-task" submit-label="Add task" @save="addTask" />
 
-      <div class="api-demo">
-        <button
-          class="sample-button"
-          type="button"
-          :disabled="isLoadingSamples"
-          @click="loadSampleTasks"
-        >
-          {{ isLoadingSamples ? 'Loading…' : 'Load sample tasks from API' }}
-        </button>
-        <p v-if="sampleLoadError" class="api-error" role="alert">{{ sampleLoadError }}</p>
+      <div class="api-demo" aria-live="polite">
+        <p v-if="isLoadingSamples" class="api-status">Loading sample tasks…</p>
+        <p v-if="sampleLoadError" class="api-error" role="alert">
+          {{ sampleLoadError }}
+          <button class="sample-button" type="button" @click="loadSampleTasks">Try again</button>
+        </p>
       </div>
 
       <div class="list-heading">
