@@ -65,9 +65,24 @@ button {
 }
 
 .site-header nav a:hover,
-.site-header nav a.active-link {
+.site-header nav a.active-link,
+.site-header nav .logout-button:hover {
   background: #e6efe8;
   color: #287747;
+}
+
+.site-header nav .logout-button {
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #69776f;
+  font-size: 0.9rem;
+}
+
+.logout-error {
+  color: #a33c3c;
+  font-size: 0.78rem;
 }
 
 .page {
