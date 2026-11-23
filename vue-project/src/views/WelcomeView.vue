@@ -11,7 +11,7 @@ const isEditing = ref(false)
 
 function loadProfile(): string {
   try {
-    return localStorage.getItem(profileKey) ?? ''
+    return localStorage.getItem(profileKey)?.trim() ?? ''
   } catch {
     return ''
   }
@@ -19,7 +19,10 @@ function loadProfile(): string {
 
 function saveProfile() {
   const trimmedName = name.value.trim()
-  if (!trimmedName) return
+  if (!trimmedName) {
+    errorMessage.value = 'Please enter your first name.'
+    return
+  }
 
   try {
     localStorage.setItem(profileKey, trimmedName)
@@ -80,8 +83,8 @@ function saveProfile() {
         </template>
 
         <template v-else>
-          <p class="eyebrow">Let’s get started</p>
-          <h2 class="panel-title">Your own little space.</h2>
+          <p class="eyebrow">Set up your profile</p>
+          <h2 class="panel-title">Let’s make this yours.</h2>
           <p class="panel-description">What should we call you?</p>
 
           <form class="welcome-form" @submit.prevent="saveProfile">
@@ -97,7 +100,7 @@ function saveProfile() {
               required
               autofocus
             />
-            <button class="welcome-submit" type="submit">Continue to my tasks</button>
+            <button class="welcome-submit" type="submit">Create my profile</button>
             <p v-if="errorMessage" class="welcome-error" role="alert">{{ errorMessage }}</p>
           </form>
 
