@@ -7,7 +7,7 @@
         This small task app is a place to practice Vue concepts like reactive data,
         components, props, events, and loading data from an API.
       </p>
-      <RouterLink class="back-link" to="/">Back to tasks</RouterLink>
+      <RouterLink class="back-link" to="/tasks">Back to tasks</RouterLink>
     </section>
   </main>
 </template>
