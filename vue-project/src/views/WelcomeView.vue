@@ -1,17 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const profileKey = 'task-tracker-profile'
+const draftKey = 'task-tracker-account-draft'
+type AccountMode = 'signup' | 'login'
+
+interface AccountDraft {
+  mode: AccountMode
+  step: number
+  name: string
+  email: string
+}
+
 const router = useRouter()
 const profileName = ref(loadProfile())
-const name = ref('')
-const email = ref('')
+const savedDraft = loadDraft()
+const name = ref(savedDraft?.name ?? '')
+const email = ref(savedDraft?.email ?? '')
 const password = ref('')
 const errorMessage = ref('')
-const isEditing = ref(false)
-const isLogin = ref(false)
+const formSaveError = ref('')
+const isEditing = ref(Boolean(savedDraft))
+const isLogin = ref(savedDraft?.mode === 'login')
+const currentStep = ref(savedDraft?.step ?? 1)
 const showPassword = ref(false)
+const isSubmitting = ref(false)
+const totalSteps = computed(() => (isLogin.value ? 2 : 3))
 
 function loadProfile(): string {
   try {
@@ -21,13 +36,68 @@ function loadProfile(): string {
   }
 }
 
-function submitAccountForm() {
+function loadDraft(): AccountDraft | null {
+  try {
+    const savedValue = localStorage.getItem(draftKey)
+    if (!savedValue) return null
+
+    const value: unknown = JSON.parse(savedValue)
+    if (
+      typeof value !== 'object' ||
+      value === null ||
+      !('mode' in value) ||
+      (value.mode !== 'signup' && value.mode !== 'login') ||
+      !('step' in value) ||
+      typeof value.step !== 'number' ||
+      !('name' in value) ||
+      typeof value.name !== 'string' ||
+      !('email' in value) ||
+      typeof value.email !== 'string'
+    ) {
+      return null
+    }
+
+    const stepCount = value.mode === 'login' ? 2 : 3
+    if (!Number.isInteger(value.step) || value.step < 1 || value.step > stepCount) return null
+
+    return {
+      mode: value.mode,
+      step: value.step,
+      name: value.name,
+      email: value.email,
+    }
+  } catch {
+    return null
+  }
+}
+
+watch([name, email, isLogin, currentStep], () => {
+  try {
+    localStorage.setItem(
+      draftKey,
+      JSON.stringify({
+        mode: isLogin.value ? 'login' : 'signup',
+        step: currentStep.value,
+        name: name.value,
+        email: email.value,
+      }),
+    )
+    formSaveError.value = ''
+  } catch {
+    formSaveError.value = 'We couldn’t save your progress on this device. Keep this page open.'
+  }
+})
+
+async function submitAccountForm() {
+  if (isSubmitting.value) return
+
   const trimmedName = name.value.trim()
   if (!isLogin.value && !trimmedName) {
     errorMessage.value = 'Please enter your first name.'
     return
   }
 
+  isSubmitting.value = true
   try {
     if (isLogin.value) {
       localStorage.removeItem(profileKey)
@@ -35,17 +105,43 @@ function submitAccountForm() {
       localStorage.setItem(profileKey, trimmedName)
       profileName.value = trimmedName
     }
+    localStorage.removeItem(draftKey)
     errorMessage.value = ''
-    void router.push('/tasks')
+    password.value = ''
+    await router.push('/tasks')
   } catch {
     errorMessage.value = 'We couldn’t continue. Please try again.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+function handleStepSubmit() {
+  if (isSubmitting.value) return
+
+  if (!isLogin.value && currentStep.value === 1 && !name.value.trim()) {
+    errorMessage.value = 'Please enter your first name.'
+    return
+  }
+
+  errorMessage.value = ''
+  if (currentStep.value < totalSteps.value) {
+    currentStep.value += 1
+  } else {
+    void submitAccountForm()
   }
 }
 
 function selectMode(login: boolean) {
   isLogin.value = login
+  currentStep.value = 1
   password.value = ''
   showPassword.value = false
+  errorMessage.value = ''
+}
+
+function goBack() {
+  currentStep.value = Math.max(1, currentStep.value - 1)
   errorMessage.value = ''
 }
 </script>
@@ -104,7 +200,7 @@ function selectMode(login: boolean) {
             {{ isLogin ? 'Log in to get back to your tasks.' : 'It only takes a moment to get started.' }}
           </p>
 
-          <div class="account-switch" aria-label="Choose an option">
+          <div class="account-switch" role="group" aria-label="Choose an option">
             <button
               type="button"
               :class="{ selected: !isLogin }"
@@ -123,8 +219,20 @@ function selectMode(login: boolean) {
             </button>
           </div>
 
-          <form class="welcome-form" @submit.prevent="submitAccountForm">
-            <template v-if="!isLogin">
+          <div
+            class="form-progress"
+            role="progressbar"
+            :aria-label="`Step ${currentStep} of ${totalSteps}`"
+            aria-valuemin="1"
+            :aria-valuemax="totalSteps"
+            :aria-valuenow="currentStep"
+          >
+            <div class="form-progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
+          </div>
+          <p class="step-label">Step {{ currentStep }} of {{ totalSteps }}</p>
+
+          <form class="welcome-form" @submit.prevent="handleStepSubmit">
+            <template v-if="!isLogin && currentStep === 1">
               <label for="profile-name">Your first name</label>
               <input
                 id="profile-name"
@@ -138,47 +246,73 @@ function selectMode(login: boolean) {
               />
             </template>
 
-            <label for="account-email">Email address</label>
-            <input
-              id="account-email"
-              v-model="email"
-              type="email"
-              name="email"
-              autocomplete="email"
-              placeholder="you@example.com"
-              required
-            />
-
-            <label for="account-password">Password</label>
-            <div class="password-field">
+            <template v-else-if="(isLogin && currentStep === 1) || (!isLogin && currentStep === 2)">
+              <label for="account-email">Email address</label>
               <input
-                id="account-password"
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                name="password"
-                :autocomplete="isLogin ? 'current-password' : 'new-password'"
-                :minlength="isLogin ? undefined : 8"
-                :placeholder="isLogin ? 'Enter your password' : 'At least 8 characters'"
+                id="account-email"
+                v-model="email"
+                type="email"
+                name="email"
+                autocomplete="email"
+                placeholder="you@example.com"
                 required
               />
+            </template>
+
+            <template v-else>
+              <label for="account-password">Password</label>
+              <div class="password-field">
+                <input
+                  id="account-password"
+                  v-model="password"
+                  :type="showPassword ? 'text' : 'password'"
+                  name="password"
+                  :autocomplete="isLogin ? 'current-password' : 'new-password'"
+                  :minlength="isLogin ? undefined : 8"
+                  :placeholder="isLogin ? 'Enter your password' : 'At least 8 characters'"
+                  required
+                />
+                <button
+                  class="password-toggle"
+                  type="button"
+                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                  @click="showPassword = !showPassword"
+                >
+                  {{ showPassword ? 'Hide' : 'Show' }}
+                </button>
+              </div>
+            </template>
+
+            <p v-if="formSaveError" class="welcome-error" role="alert">{{ formSaveError }}</p>
+            <p v-if="errorMessage" class="welcome-error" role="alert">{{ errorMessage }}</p>
+
+            <div class="form-actions">
               <button
-                class="password-toggle"
+                v-if="currentStep > 1"
+                class="form-back"
                 type="button"
-                :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                @click="showPassword = !showPassword"
+                :disabled="isSubmitting"
+                @click="goBack"
               >
-                {{ showPassword ? 'Hide' : 'Show' }}
+                Back
+              </button>
+              <button class="welcome-submit" type="submit" :disabled="isSubmitting">
+                <span v-if="isSubmitting" class="submit-spinner" aria-hidden="true"></span>
+                {{
+                  isSubmitting
+                    ? 'Opening your tasks…'
+                    : currentStep < totalSteps
+                      ? 'Continue'
+                      : isLogin
+                        ? 'Log in'
+                        : 'Create account'
+                }}
               </button>
             </div>
-
-            <button class="welcome-submit" type="submit">
-              {{ isLogin ? 'Log in' : 'Create account' }}
-            </button>
-            <p v-if="errorMessage" class="welcome-error" role="alert">{{ errorMessage }}</p>
           </form>
 
           <p class="privacy-note">
-            Demo only: accounts aren’t verified, and your password is never sent or saved. Tasks stay in this browser.
+            Demo only: accounts aren’t verified. Your name and email are saved in this browser to remember your progress; your password is never saved or sent.
           </p>
           <button v-if="profileName" class="text-button" type="button" @click="isEditing = false">
             Back to {{ profileName }}’s profile

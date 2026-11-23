@@ -91,13 +91,13 @@ button {
 }
 
 .account-switch button {
-  min-height: 39px;
+  min-height: 48px;
   padding: 0 8px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: #69776f;
-  font-size: 0.84rem;
+  font-size: 1rem;
   font-weight: 650;
 }
 
@@ -105,6 +105,27 @@ button {
   background: white;
   color: #287747;
   box-shadow: 0 1px 4px rgba(35, 65, 46, 0.12);
+}
+
+.form-progress {
+  height: 6px;
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e8eee9;
+}
+
+.form-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #398658;
+  transition: width 180ms ease;
+}
+
+.step-label {
+  margin-top: 8px;
+  color: #69776f;
+  font-size: 1rem;
 }
 
 .password-field {
@@ -119,11 +140,13 @@ button {
   position: absolute;
   top: 50%;
   right: 12px;
+  min-width: 48px;
+  min-height: 48px;
   padding: 5px;
   border: 0;
   background: transparent;
   color: #287747;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 650;
   transform: translateY(-50%);
 }
@@ -318,18 +341,19 @@ button {
 
 .welcome-form label {
   color: #34443a;
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 650;
 }
 
 .welcome-form input {
   width: 100%;
-  min-height: 49px;
+  min-height: 52px;
   padding: 0 14px;
   border: 1px solid #d8e1da;
   border-radius: 10px;
   background: #fff;
   color: #21302b;
+  font-size: 16px;
   outline: none;
 }
 
@@ -345,7 +369,7 @@ button {
 .welcome-submit {
   display: flex;
   width: 100%;
-  min-height: 49px;
+  min-height: 52px;
   align-items: center;
   justify-content: center;
   margin-top: 7px;
@@ -360,38 +384,88 @@ button {
   transition: background 150ms ease, transform 150ms ease;
 }
 
-.welcome-submit:hover {
+.welcome-submit:hover:not(:disabled) {
   background: #1f633a;
   transform: translateY(-1px);
 }
 
 .welcome-submit:focus-visible,
-.text-button:focus-visible {
+.text-button:focus-visible,
+.form-back:focus-visible {
   outline: 3px solid rgba(57, 134, 88, 0.32);
   outline-offset: 3px;
 }
 
+.welcome-submit:disabled {
+  cursor: wait;
+  opacity: 0.78;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 7px;
+}
+
+.form-actions .welcome-submit {
+  flex: 1;
+  margin-top: 0;
+}
+
+.form-back {
+  min-width: 88px;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid #d8e1da;
+  border-radius: 10px;
+  background: #fff;
+  color: #52685a;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.form-back:hover:not(:disabled) {
+  background: #f5f8f5;
+}
+
+.submit-spinner {
+  width: 17px;
+  height: 17px;
+  margin-right: 9px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: submit-spin 700ms linear infinite;
+}
+
+@keyframes submit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .privacy-note {
   margin-top: 18px;
-  color: #748078;
-  font-size: 0.78rem;
-  line-height: 1.5;
+  color: #69776f;
+  font-size: 1rem;
+  line-height: 1.55;
   text-align: center;
 }
 
 .welcome-error {
   color: #a33c3c;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .text-button {
   display: block;
   margin: 20px auto 0;
-  padding: 4px;
+  min-height: 48px;
+  padding: 8px;
   border: 0;
   background: transparent;
   color: #287747;
-  font-size: 0.84rem;
+  font-size: 0.95rem;
   font-weight: 650;
 }
 
@@ -819,6 +893,17 @@ h1 {
   .welcome-panel {
     width: min(100%, 520px);
     padding: 28px 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-progress-fill,
+  .welcome-submit {
+    transition: none;
+  }
+
+  .submit-spinner {
+    animation: none;
   }
 }
 
