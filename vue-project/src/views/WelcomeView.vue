@@ -6,8 +6,12 @@ const profileKey = 'task-tracker-profile'
 const router = useRouter()
 const profileName = ref(loadProfile())
 const name = ref('')
+const email = ref('')
+const password = ref('')
 const errorMessage = ref('')
 const isEditing = ref(false)
+const isLogin = ref(false)
+const showPassword = ref(false)
 
 function loadProfile(): string {
   try {
@@ -17,21 +21,32 @@ function loadProfile(): string {
   }
 }
 
-function saveProfile() {
+function submitAccountForm() {
   const trimmedName = name.value.trim()
-  if (!trimmedName) {
+  if (!isLogin.value && !trimmedName) {
     errorMessage.value = 'Please enter your first name.'
     return
   }
 
   try {
-    localStorage.setItem(profileKey, trimmedName)
-    profileName.value = trimmedName
+    if (isLogin.value) {
+      localStorage.removeItem(profileKey)
+    } else {
+      localStorage.setItem(profileKey, trimmedName)
+      profileName.value = trimmedName
+    }
     errorMessage.value = ''
     void router.push('/tasks')
   } catch {
-    errorMessage.value = 'We couldn’t save your profile in this browser. Please try again.'
+    errorMessage.value = 'We couldn’t continue. Please try again.'
   }
+}
+
+function selectMode(login: boolean) {
+  isLogin.value = login
+  password.value = ''
+  showPassword.value = false
+  errorMessage.value = ''
 }
 </script>
 
@@ -83,29 +98,87 @@ function saveProfile() {
         </template>
 
         <template v-else>
-          <p class="eyebrow">Set up your profile</p>
-          <h2 class="panel-title">Let’s make this yours.</h2>
-          <p class="panel-description">What should we call you?</p>
+          <p class="eyebrow">A little easier, starting now</p>
+          <h2 class="panel-title">{{ isLogin ? 'Welcome back.' : 'Create your account.' }}</h2>
+          <p class="panel-description">
+            {{ isLogin ? 'Log in to get back to your tasks.' : 'It only takes a moment to get started.' }}
+          </p>
 
-          <form class="welcome-form" @submit.prevent="saveProfile">
-            <label for="profile-name">Your first name</label>
+          <div class="account-switch" aria-label="Choose an option">
+            <button
+              type="button"
+              :class="{ selected: !isLogin }"
+              :aria-pressed="!isLogin"
+              @click="selectMode(false)"
+            >
+              Create account
+            </button>
+            <button
+              type="button"
+              :class="{ selected: isLogin }"
+              :aria-pressed="isLogin"
+              @click="selectMode(true)"
+            >
+              Log in
+            </button>
+          </div>
+
+          <form class="welcome-form" @submit.prevent="submitAccountForm">
+            <template v-if="!isLogin">
+              <label for="profile-name">Your first name</label>
+              <input
+                id="profile-name"
+                v-model="name"
+                type="text"
+                name="name"
+                autocomplete="given-name"
+                placeholder="e.g. Alex"
+                maxlength="60"
+                required
+              />
+            </template>
+
+            <label for="account-email">Email address</label>
             <input
-              id="profile-name"
-              v-model="name"
-              type="text"
-              name="name"
-              autocomplete="given-name"
-              placeholder="e.g. Alex"
-              maxlength="60"
+              id="account-email"
+              v-model="email"
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
               required
-              autofocus
             />
-            <button class="welcome-submit" type="submit">Create my profile</button>
+
+            <label for="account-password">Password</label>
+            <div class="password-field">
+              <input
+                id="account-password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                name="password"
+                :autocomplete="isLogin ? 'current-password' : 'new-password'"
+                :minlength="isLogin ? undefined : 8"
+                :placeholder="isLogin ? 'Enter your password' : 'At least 8 characters'"
+                required
+              />
+              <button
+                class="password-toggle"
+                type="button"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                @click="showPassword = !showPassword"
+              >
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+
+            <button class="welcome-submit" type="submit">
+              {{ isLogin ? 'Log in' : 'Create account' }}
+            </button>
             <p v-if="errorMessage" class="welcome-error" role="alert">{{ errorMessage }}</p>
           </form>
 
           <p class="privacy-note">
-            No password to remember. Your name and tasks stay in this browser.
+            Demo only: accounts aren’t verified, and your password is never sent or saved. Tasks stay in this browser.
           </p>
           <button v-if="profileName" class="text-button" type="button" @click="isEditing = false">
             Back to {{ profileName }}’s profile

@@ -80,6 +80,60 @@ button {
   font-size: 0.9rem;
 }
 
+.account-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 22px;
+  padding: 4px;
+  border-radius: 11px;
+  background: #f0f4f0;
+}
+
+.account-switch button {
+  min-height: 39px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #69776f;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.account-switch button.selected {
+  background: white;
+  color: #287747;
+  box-shadow: 0 1px 4px rgba(35, 65, 46, 0.12);
+}
+
+.password-field {
+  position: relative;
+}
+
+.welcome-form .password-field input {
+  padding-right: 64px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+  color: #287747;
+  font-size: 0.8rem;
+  font-weight: 650;
+  transform: translateY(-50%);
+}
+
+.password-toggle:focus-visible,
+.account-switch button:focus-visible {
+  outline: 3px solid rgba(57, 134, 88, 0.32);
+  outline-offset: 2px;
+}
+
 .logout-error {
   color: #a33c3c;
   font-size: 0.78rem;
@@ -259,7 +313,7 @@ button {
 .welcome-form {
   display: grid;
   gap: 9px;
-  margin-top: 25px;
+  margin-top: 16px;
 }
 
 .welcome-form label {
